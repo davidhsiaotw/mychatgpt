@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -20,15 +21,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mychatgpt.data.model.Account
 import com.example.mychatgpt.ui.theme.MyChatGPTTheme
+import com.example.mychatgpt.util.FirebaseUtil
 import com.example.mychatgpt.util.debug
+import com.example.mychatgpt.util.isEmailValid
 import com.example.mychatgpt.util.isPasswordValid
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.userProfileChangeRequest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,81 +53,48 @@ fun CreateAccountScreen(title: String = "Create New Account") {
             // solution: https://stackoverflow.com/a/74137042
             TextField(value = account.name, onValueChange = {
                 account = account.copy(name = it)
-            }, label = { Text(text = "Name") })
+            }, label = { Text(text = "Name") }, singleLine = true)
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            TextField(value = account.email, onValueChange = {
-                account = account.copy(email = it)
-            }, label = { Text(text = "Email") })
+            TextField(
+                value = account.email, onValueChange = {
+                    account = account.copy(email = it)
+                }, label = { Text(text = "Email") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                singleLine = true
+            )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             TextField(value = account.password, onValueChange = {
                 account = account.copy(password = it)
-            }, label = { Text(text = "New Password") })
+            }, label = { Text(text = "New Password") },
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                singleLine = true
+            )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Button(onClick = {
-                if (!isPasswordValid(account.password)) {
-                    // check if password's length is at least six characters
-                    errorMessage = "password should be minimum 6 characters"
+                if (account.name.isBlank()) {
+                    errorMessage = "name should not be blank"
+                } else if (account.email.isBlank()) {
+                    errorMessage = "email should not be blank"
+                } else if (!isEmailValid(account.email)) {
+                    errorMessage = "email is not valid"
+                } else if (!isPasswordValid(account.password)) {
+                    errorMessage = "password should be 6~16 characters"
                 } else {
-                    val firebaseAuth = FirebaseAuth.getInstance()
-
-                    firebaseAuth.fetchSignInMethodsForEmail(account.email).addOnCompleteListener {
-                        if (it.isSuccessful) {
-                            it.result.signInMethods?.size.let { methods ->
-                                if (methods != null) {
-                                    // check if email already exists
-                                    if (methods == 0) {
-                                        errorMessage = ""
-
-                                        // create user in Firebase Authentication
-                                        firebaseAuth.createUserWithEmailAndPassword(
-                                            account.email, account.password
-                                        ).addOnCompleteListener { authTask ->
-                                            if (authTask.isSuccessful) {
-                                                errorMessage = ""
-
-                                                // set name for the user
-                                                firebaseAuth.currentUser?.updateProfile(
-                                                    userProfileChangeRequest {
-                                                        displayName = account.name
-                                                    })?.addOnCompleteListener { setName ->
-                                                    if (setName.isSuccessful) {
-                                                        errorMessage = "complete"
-
-                                                    } else {
-                                                        errorMessage = setName.exception?.message
-                                                            ?: "something wrong when setting name"
-                                                    }
-
-                                                }
-                                            } else {
-                                                errorMessage = authTask.exception?.message
-                                                    ?: "something wrong when creating account"
-                                            }
-                                        }
-                                    } else {
-                                        errorMessage = "The email already exists"
-                                    }
-                                } else {
-                                    errorMessage = it.exception?.message
-                                        ?: "something wrong when checking duplicate email"
-                                }
-                            }
-                        } else {
-                            errorMessage = it.exception?.message
-                                ?: "something wrong when checking duplicate email"
+                    FirebaseUtil.createUserWithNameAndEmailAndPassword(
+                        account.name, account.email, account.password, onSuccess = {
+                            errorMessage = "complete"
+                        }, onFailure = {
+                            errorMessage = it
                         }
-                    }
-
-
+                    )
                 }
-
-
             }) {
                 Text(text = "CREATE")
             }
