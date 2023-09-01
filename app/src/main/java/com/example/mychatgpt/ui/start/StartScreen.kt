@@ -55,7 +55,7 @@ fun StartScreen() {
 
 @Preview(showBackground = true)
 @Composable
-fun StartScreenPreview() {
+private fun StartScreenPreview() {
     MyChatGPTTheme {
         StartScreen()
     }
