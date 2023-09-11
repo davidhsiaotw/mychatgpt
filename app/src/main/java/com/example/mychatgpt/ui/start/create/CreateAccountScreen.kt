@@ -26,6 +26,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.mychatgpt.Login
+import com.example.mychatgpt.data.database.MyChatGptFirebase
 import com.example.mychatgpt.data.model.Account
 import com.example.mychatgpt.ui.theme.MyChatGPTTheme
 import com.example.mychatgpt.util.FirebaseUtil
@@ -35,7 +37,9 @@ import com.example.mychatgpt.util.isPasswordValid
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateAccountScreen(title: String = "Create New Account") {
+fun CreateAccountScreen(
+    title: String = "Create New Account", onClickNavigate: (String) -> Unit = {}
+) {
     var account by rememberSaveable(stateSaver = AccountSaver) { mutableStateOf(Account()) }
     var errorMessage by rememberSaveable { mutableStateOf("") }
 
@@ -78,8 +82,9 @@ fun CreateAccountScreen(title: String = "Create New Account") {
             Spacer(modifier = Modifier.height(12.dp))
 
             Button(onClick = {
-                if (account.name.isBlank()) {
-                    errorMessage = "name should not be blank"
+
+                if (account.name.length !in 1..25) {
+                    errorMessage = "name should be 1~25 characters"
                 } else if (account.email.isBlank()) {
                     errorMessage = "email should not be blank"
                 } else if (!isEmailValid(account.email)) {
@@ -87,21 +92,28 @@ fun CreateAccountScreen(title: String = "Create New Account") {
                 } else if (!isPasswordValid(account.password)) {
                     errorMessage = "password should be 6~16 characters"
                 } else {
-                    FirebaseUtil.createUserWithNameAndEmailAndPassword(
-                        account.name, account.email, account.password, onSuccess = {
-                            errorMessage = "complete"
-                        }, onFailure = {
-                            errorMessage = it
-                        }
-                    )
+                    account = account.copy(name = account.name.trim(), email = account.email.trim())
+                    MyChatGptFirebase.addNewAccount(account.email, onSuccess = {
+                        FirebaseUtil.createUserWithNameAndEmailAndPassword(
+                            account.name, account.email, account.password, onSuccess = {
+                                errorMessage = ""
+                                account = Account() // reset account
+                                onClickNavigate(Login.route)
+                            }, onFailure = {
+                                errorMessage = it
+                            }
+                        )
+                    }, onFailure = {
+                        errorMessage = it
+                    })
+
+
                 }
             }) {
                 Text(text = "CREATE")
             }
 
-            if (errorMessage == "complete")
-                debug("CreateAccountScreen", "NAVIGATE TO LOGIN SCREEN!")
-            else if (errorMessage.isNotBlank()) {
+            if (errorMessage.isNotBlank()) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(text = errorMessage, fontSize = 12.sp, color = Color.Red)
             }
