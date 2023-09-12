@@ -26,10 +26,6 @@ object Forget : Destination {
     override val route: String = "forget"
 }
 
-object Verification : Destination {
-    override val route: String = "verification"
-}
-
 object ChatList : Destination {
     override val route: String = "list"
 }

@@ -18,7 +18,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.mychatgpt.ui.start.StartScreen
 import com.example.mychatgpt.ui.start.create.CreateAccountScreen
 import com.example.mychatgpt.ui.start.login.LoginScreen
-import com.example.mychatgpt.ui.start.verify.VerificationScreen
 import com.example.mychatgpt.ui.theme.MyChatGPTTheme
 
 class MainActivity : ComponentActivity() {
@@ -69,12 +68,6 @@ fun MyNavHost(
             val email = backStackEntry.arguments?.getString(Login.EMAIL_ADDRESS) ?: ""
             LoginScreen(email = email, onClickNavigate = {
                 navController.navigateSingleTopTo(route = it)
-            })
-        }
-
-        composable(route = Verification.route) {
-            VerificationScreen(onClickNavigate = {
-                navController.navigateSingleTopTo(ChatList.route, route = it)
             })
         }
     }
