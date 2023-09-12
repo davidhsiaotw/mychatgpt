@@ -1,6 +1,6 @@
 package com.example.mychatgpt.util
 
-import android.util.Log
+import com.example.mychatgpt.data.model.Account
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.userProfileChangeRequest
 
@@ -30,10 +30,10 @@ object FirebaseUtil {
                         .addOnSuccessListener {
                             // set user
                             updateName(name, onSuccess, onFailure)
-                            // WARN: onSuccess is not used but passed to updateName
+                            // WARN: onSuccess is not used but passed to updateName because it contains navigation on create screen
                         }.addOnFailureListener {
                             onFailure(it.message ?: "something wrong when creating account")
-                            Log.e(
+                            error(
                                 "createUserWithNameAndEmailAndPassword",
                                 it.message ?: "something wrong when creating account"
                             )
@@ -43,8 +43,18 @@ object FirebaseUtil {
 
             }.addOnFailureListener {
                 onFailure(it.message ?: ("something wrong when setting name"))
-                Log.e("checkEmailDuplicate", it.message ?: ("something wrong when setting name"))
+                error("checkEmailDuplicate", it.message ?: ("something wrong when setting name"))
             }
+    }
+
+    fun verifyEmail(onSuccess: () -> Unit = {}, onFailure: (String) -> Unit = {}) {
+        if (firebaseAuth.currentUser != null) {
+            firebaseAuth.currentUser!!.sendEmailVerification().addOnSuccessListener {
+                onSuccess()
+            }.addOnFailureListener {
+                onFailure(it.message ?: "FirebaseUtil.verifyEmail failed")
+            }
+        }
     }
 
     fun updateName(name: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
@@ -55,7 +65,27 @@ object FirebaseUtil {
             onSuccess()
         }?.addOnFailureListener {
             onFailure(it.message ?: "something wrong when setting name")
-            Log.e("updateName", it.message ?: "something wrong when setting name")
+            error("updateName", it.message ?: "something wrong when setting name")
         }
+    }
+
+    fun signIn(email: String, password: String, onSuccess: () -> Unit = {}) {
+        firebaseAuth.signInWithEmailAndPassword(email, password).addOnSuccessListener {
+            if (firebaseAuth.currentUser?.isEmailVerified == true) {
+                onSuccess()
+            } else {
+                debug("signIn", "$email is not verified")
+            }
+
+        }.addOnFailureListener {
+            error("signIn", "exception message: ${it.message}")
+        }
+    }
+
+    fun signOut() = firebaseAuth.signOut()
+
+    fun getUserInfo(): Account {
+        val user = firebaseAuth.currentUser
+        return Account(user?.displayName ?: "", user?.email ?: "")
     }
 }

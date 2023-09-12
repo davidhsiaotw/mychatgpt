@@ -13,6 +13,16 @@ object MyChatGptFirebase {
     private val database = Firebase.database.getReference("chat")
 
     fun addNewAccount(email: String, onSuccess: () -> Unit = {}, onFailure: (String) -> Unit = {}) {
+        checkIfEmailExists(email, onSuccess = {
+            val id = database.push().key!!    // create path with random key
+            database.child("$id/email").setValue(email)
+            onSuccess()
+        }, onFailure = onFailure)
+    }
+
+    fun checkIfEmailExists(
+        email: String, onSuccess: () -> Unit = {}, onFailure: (String) -> Unit = {}
+    ) {
         database.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
@@ -27,8 +37,6 @@ object MyChatGptFirebase {
                     }
 
                     if (!isEmailFound) {
-                        val id = database.push().key!!    // create path with random key
-                        database.child("$id/email").setValue(email)
                         onSuccess()
                     }
                 }

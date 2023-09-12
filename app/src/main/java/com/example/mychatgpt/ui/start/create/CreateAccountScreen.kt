@@ -37,9 +37,7 @@ import com.example.mychatgpt.util.isPasswordValid
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateAccountScreen(
-    title: String = "Create New Account", onClickNavigate: (String) -> Unit = {}
-) {
+fun CreateAccountScreen(onClickNavigate: (String) -> Unit = {}) {
     var account by rememberSaveable(stateSaver = AccountSaver) { mutableStateOf(Account()) }
     var errorMessage by rememberSaveable { mutableStateOf("") }
 
@@ -49,7 +47,7 @@ fun CreateAccountScreen(
             .semantics { contentDescription = "Login Screen" }, contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = title, fontSize = 24.sp)
+            Text(text = "Create New Account", fontSize = 24.sp)
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -92,13 +90,17 @@ fun CreateAccountScreen(
                 } else if (!isPasswordValid(account.password)) {
                     errorMessage = "password should be 6~16 characters"
                 } else {
+
+
                     account = account.copy(name = account.name.trim(), email = account.email.trim())
                     MyChatGptFirebase.addNewAccount(account.email, onSuccess = {
                         FirebaseUtil.createUserWithNameAndEmailAndPassword(
                             account.name, account.email, account.password, onSuccess = {
+                                // TODO: navigation is not immediate
+                                onClickNavigate(Login.route)
+                                FirebaseUtil.verifyEmail()
                                 errorMessage = ""
                                 account = Account() // reset account
-                                onClickNavigate(Login.route)
                             }, onFailure = {
                                 errorMessage = it
                             }

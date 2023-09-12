@@ -17,15 +17,17 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.mychatgpt.Create
+import com.example.mychatgpt.Login
 import com.example.mychatgpt.R
 import com.example.mychatgpt.ui.theme.MyChatGPTTheme
 
 @Composable
-fun StartScreen() {
+fun StartScreen(onClickNavigate: (String) -> Unit = {}) {
     Column(modifier = Modifier
         .fillMaxSize()
         .semantics { contentDescription = "Start Screen" }
-        .padding(vertical = 150.dp)
+        .padding(vertical = 100.dp)
     ) {
         Image(
             painter = painterResource(id = R.drawable.mychatgpt),
@@ -33,7 +35,7 @@ fun StartScreen() {
         )
         Button(
             onClick = {
-                // TODO: navigate to login screen
+                onClickNavigate(Login.route)
             }, modifier = Modifier
                 .fillMaxWidth(0.5f)
                 .align(Alignment.CenterHorizontally)
@@ -43,7 +45,7 @@ fun StartScreen() {
         Spacer(modifier = Modifier.height(12.dp))
         Button(
             onClick = {
-                // TODO: navigate to create account screen
+                onClickNavigate(Create.route)
             }, modifier = Modifier
                 .fillMaxWidth(0.5f)
                 .align(Alignment.CenterHorizontally)
