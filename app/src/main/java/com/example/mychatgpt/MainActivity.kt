@@ -65,8 +65,9 @@ fun MyNavHost(
             })
         }
 
-        composable(route = Login.route) {
-            LoginScreen(onClickNavigate = {
+        composable(route = Login.routeWithArgs, arguments = Login.arguments) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString(Login.EMAIL_ADDRESS) ?: ""
+            LoginScreen(email = email, onClickNavigate = {
                 navController.navigateSingleTopTo(route = it)
             })
         }

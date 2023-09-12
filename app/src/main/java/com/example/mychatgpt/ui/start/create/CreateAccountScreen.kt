@@ -97,7 +97,7 @@ fun CreateAccountScreen(onClickNavigate: (String) -> Unit = {}) {
                         FirebaseUtil.createUserWithNameAndEmailAndPassword(
                             account.name, account.email, account.password, onSuccess = {
                                 // TODO: navigation is not immediate
-                                onClickNavigate(Login.route)
+                                onClickNavigate("${Login.route}/${account.email}")
                                 FirebaseUtil.verifyEmail()
                                 errorMessage = ""
                                 account = Account() // reset account

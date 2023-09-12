@@ -1,5 +1,8 @@
 package com.example.mychatgpt
 
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+
 interface Destination {
     val route: String
 }
@@ -14,6 +17,9 @@ object Create : Destination {
 
 object Login : Destination {
     override val route: String = "login"
+    const val EMAIL_ADDRESS = "email_address"
+    val routeWithArgs = "$route/{$EMAIL_ADDRESS}"
+    val arguments = listOf(navArgument(EMAIL_ADDRESS) { type = NavType.StringType })
 }
 
 object Forget : Destination {
