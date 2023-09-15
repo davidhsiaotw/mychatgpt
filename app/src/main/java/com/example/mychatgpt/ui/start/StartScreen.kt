@@ -35,7 +35,7 @@ fun StartScreen(onClickNavigate: (String) -> Unit = {}) {
         )
         Button(
             onClick = {
-                onClickNavigate(Login.route)
+                onClickNavigate("${Login.route}?email=")
             }, modifier = Modifier
                 .fillMaxWidth(0.5f)
                 .align(Alignment.CenterHorizontally)

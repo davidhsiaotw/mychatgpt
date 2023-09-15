@@ -90,16 +90,15 @@ fun CreateAccountScreen(onClickNavigate: (String) -> Unit = {}) {
                 } else if (!isPasswordValid(account.password)) {
                     errorMessage = "password should be 6~16 characters"
                 } else {
-
-
                     account = account.copy(name = account.name.trim(), email = account.email.trim())
                     MyChatGptFirebase.addNewAccount(account.email, onSuccess = {
                         FirebaseUtil.createUserWithNameAndEmailAndPassword(
                             account.name, account.email, account.password, onSuccess = {
-                                // TODO: navigation is not immediate
-                                onClickNavigate("${Login.route}/${account.email}")
                                 FirebaseUtil.verifyEmail()
                                 errorMessage = ""
+                                // TODO: navigation has delay
+//                                debug("CreateAccountScreen", "${Login.route}/${account.email}")
+                                onClickNavigate("${Login.route}?email=${account.email}")
                                 account = Account() // reset account
                             }, onFailure = {
                                 errorMessage = it

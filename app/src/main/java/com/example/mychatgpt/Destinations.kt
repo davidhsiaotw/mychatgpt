@@ -18,8 +18,13 @@ object Create : Destination {
 object Login : Destination {
     override val route: String = "login"
     const val EMAIL_ADDRESS = "email_address"
-    val routeWithArgs = "$route/{$EMAIL_ADDRESS}"
-    val arguments = listOf(navArgument(EMAIL_ADDRESS) { type = NavType.StringType })
+    // issue: cannot pass empty string
+    // solution: https://stackoverflow.com/a/71295284
+    val routeWithArgs = "$route?email={$EMAIL_ADDRESS}"
+    val arguments = listOf(navArgument(EMAIL_ADDRESS) {
+        type = NavType.StringType
+        defaultValue = ""
+    })
 }
 
 object Forget : Destination {
