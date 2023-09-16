@@ -69,16 +69,20 @@ object FirebaseUtil {
         }
     }
 
-    fun signIn(email: String, password: String, onSuccess: () -> Unit = {}) {
+    fun signIn(
+        email: String, password: String, onSuccess: () -> Unit = {},
+        onFailure: (String) -> Unit = {}
+    ) {
         firebaseAuth.signInWithEmailAndPassword(email, password).addOnSuccessListener {
             if (firebaseAuth.currentUser?.isEmailVerified == true) {
                 onSuccess()
             } else {
+                onFailure("$email is not verified")
                 debug("signIn", "$email is not verified")
             }
-
         }.addOnFailureListener {
             error("signIn", "exception message: ${it.message}")
+            onFailure(it.message ?: "signInWithEmailAndPassword fails")
         }
     }
 

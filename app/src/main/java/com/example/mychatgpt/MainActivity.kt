@@ -15,6 +15,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.mychatgpt.ui.chat.chatlist.ChatListScreen
 import com.example.mychatgpt.ui.start.StartScreen
 import com.example.mychatgpt.ui.start.create.CreateAccountScreen
 import com.example.mychatgpt.ui.start.login.LoginScreen
@@ -39,6 +40,7 @@ fun MyChatGptApp() {
     val currentBackStack by navController.currentBackStackEntryAsState()
 
     Scaffold() { innerPadding ->
+        // TODO: if datastore contains email, make chat list screen as start screen, otherwise start screen
         MyNavHost(navController = navController, modifier = Modifier.padding(innerPadding))
     }
 }
@@ -67,8 +69,16 @@ fun MyNavHost(
         composable(route = Login.routeWithArgs, arguments = Login.arguments) { backStackEntry ->
             val email = backStackEntry.arguments?.getString(Login.EMAIL_ADDRESS) ?: ""
             LoginScreen(email = email, onClickNavigate = {
-                navController.navigateSingleTopTo(route = it)
+                navController.navigateSingleTopTo(ChatList.route, route = it)
             })
+        }
+
+        composable(route = ChatList.route) {
+            ChatListScreen()
+        }
+
+        composable(route = Chat.route) {
+
         }
     }
 }
@@ -79,6 +89,7 @@ fun NavHostController.navigateSingleTopTo(popUpToRoute: String = "", route: Stri
             popUpTo(popUpToRoute) {
                 saveState = true
             }
+
         launchSingleTop =
             true  // at most one copy of a given destination on the top of the back stack
         restoreState =
