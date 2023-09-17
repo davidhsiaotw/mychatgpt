@@ -39,6 +39,8 @@ import com.example.mychatgpt.ui.start.create.AccountSaver
 import com.example.mychatgpt.ui.theme.MyChatGPTTheme
 import com.example.mychatgpt.util.FirebaseUtil
 import com.example.mychatgpt.util.debug
+import com.example.mychatgpt.util.isEmailValid
+import com.example.mychatgpt.util.isPasswordValid
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,16 +91,23 @@ fun LoginScreen(email: String = "", onClickNavigate: (String) -> Unit = {}) {
             Spacer(modifier = Modifier.height(12.dp))
 
             Button(onClick = {
-                FirebaseUtil.signIn(account.email, account.password, onSuccess = {
-                    errorMessage = ""
-                    // store user email address and name
-                    coroutineScope.launch{
-                        dataStore.saveEmail(account.email)
-                        dataStore.saveName(account.name)
-                    }
-                    onClickNavigate(ChatList.route)
-                }, onFailure = { errorMessage = it })
-
+                if (account.email.isBlank()) {
+                    errorMessage = "email should not be blank"
+                } else if (!isEmailValid(account.email)) {
+                    errorMessage = "email is not valid"
+                } else if (!isPasswordValid(account.password)) {
+                    errorMessage = "password should be 6~16 characters"
+                } else {
+                    FirebaseUtil.signIn(account.email, account.password, onSuccess = {
+                        errorMessage = ""
+                        // store user email address and name
+                        coroutineScope.launch {
+                            dataStore.saveEmail(account.email)
+                            dataStore.saveName(account.name)
+                        }
+                        onClickNavigate(ChatList.route)
+                    }, onFailure = { errorMessage = it })
+                }
 
             }) {
                 Text(text = "LOGIN")
