@@ -15,7 +15,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.mychatgpt.ui.chat.ChatScreen
 import com.example.mychatgpt.ui.chat.chatlist.ChatListScreen
+import com.example.mychatgpt.ui.chat.chatlist.ChatListTopBar
 import com.example.mychatgpt.ui.start.StartScreen
 import com.example.mychatgpt.ui.start.create.CreateAccountScreen
 import com.example.mychatgpt.ui.start.login.LoginScreen
@@ -39,7 +41,14 @@ fun MyChatGptApp() {
     val navController = rememberNavController()
     val currentBackStack by navController.currentBackStackEntryAsState()
 
-    Scaffold() { innerPadding ->
+    Scaffold(
+        topBar = {
+            ChatListTopBar(
+                route = currentBackStack?.destination?.route ?: "",
+                onClickNavigate = { navController.navigateSingleTopTo(route = it) }
+            )
+        }
+    ) { innerPadding ->
         // TODO: if datastore contains email, make chat list screen as start screen, otherwise start screen
         MyNavHost(navController = navController, modifier = Modifier.padding(innerPadding))
     }
@@ -51,8 +60,6 @@ fun MyNavHost(
     startRoute: String = Start.route
 ) {
     NavHost(navController = navController, startDestination = startRoute, modifier = modifier) {
-        // issue: how to pass object between composable functions in navigation
-        // solution?: https://stackoverflow.com/a/67133534
 
         composable(route = Start.route) {
             StartScreen(onClickNavigate = {
@@ -78,7 +85,7 @@ fun MyNavHost(
         }
 
         composable(route = Chat.route) {
-
+            ChatScreen()
         }
     }
 }
@@ -98,7 +105,7 @@ fun NavHostController.navigateSingleTopTo(popUpToRoute: String = "", route: Stri
 
 @Preview(showBackground = true)
 @Composable
-private fun GreetingPreview() {
+private fun AppPreview() {
     MyChatGPTTheme {
         MyChatGptApp()
     }
