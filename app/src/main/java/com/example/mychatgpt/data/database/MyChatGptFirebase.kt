@@ -23,10 +23,14 @@ object MyChatGptFirebase {
     fun checkIfEmailExists(
         email: String, onSuccess: () -> Unit = {}, onFailure: (String) -> Unit = {}
     ) {
-        database.addListenerForSingleValueEvent(object : ValueEventListener {
+        database.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     var isEmailFound = false
+                    debug(
+                        "MyChatGptFirebase.checkIfEmailExists",
+                        "childrenCount: ${snapshot.childrenCount}"
+                    )
                     for (account in snapshot.children) {
                         val emailValue = account.child("email").getValue<String>()
                         if (emailValue != null && emailValue == email) {   // email already exists
@@ -39,11 +43,16 @@ object MyChatGptFirebase {
                     if (!isEmailFound) {
                         onSuccess()
                     }
+                } else {
+                    debug("MyChatGptFirebase.checkIfEmailExists", "snapshot contains null value")
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
-                error("test", error.toException().message ?: "chat/$email listener cancels")
+                error(
+                    "MyChatGptFirebase.checkIfEmailExists",
+                    error.toException().message ?: "chat/$email listener cancels"
+                )
             }
         })
     }
