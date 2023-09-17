@@ -16,6 +16,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.mychatgpt.ui.chat.ChatScreen
+import com.example.mychatgpt.ui.chat.ChatTopBar
 import com.example.mychatgpt.ui.chat.chatlist.ChatListScreen
 import com.example.mychatgpt.ui.chat.chatlist.ChatListTopBar
 import com.example.mychatgpt.ui.start.StartScreen
@@ -43,10 +44,16 @@ fun MyChatGptApp() {
 
     Scaffold(
         topBar = {
-            ChatListTopBar(
-                route = currentBackStack?.destination?.route ?: "",
-                onClickNavigate = { navController.navigateSingleTopTo(route = it) }
-            )
+            if (currentBackStack?.destination?.route == ChatList.route)
+                ChatListTopBar(
+                    onClickNavigate = {
+                        navController.navigateSingleTopTo(
+                            popUpToRoute = ChatList.route, route = it
+                        )
+                    }
+                )
+            else if (currentBackStack?.destination?.route == Chat.route)
+                ChatTopBar()
         }
     ) { innerPadding ->
         // TODO: if datastore contains email, make chat list screen as start screen, otherwise start screen

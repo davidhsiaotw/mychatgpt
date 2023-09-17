@@ -1,7 +1,6 @@
 package com.example.mychatgpt.viewmodel
 
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory
-import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -13,7 +12,7 @@ import com.example.mychatgpt.MyChatGptApplication
 object AppViewModelProvider {
     val Factory = viewModelFactory {
         initializer {
-            ChatroomViewModel(myChatGptApplication().container.chatRepository)
+            ChatViewModel(myChatGptApplication().container.chatRepository)
         }
     }
 }

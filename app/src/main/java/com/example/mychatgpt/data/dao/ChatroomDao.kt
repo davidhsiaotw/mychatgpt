@@ -16,6 +16,12 @@ interface ChatroomDao {
     @Query("SELECT * FROM chatroom")
     fun getAll(): Flow<List<Chatroom>>
 
+    @Query("SELECT * FROM chatroom WHERE id = :id")
+    fun getById(id: Int): Flow<Chatroom>
+
+    @Query("SELECT * FROM chatroom ORDER BY last_update DESC LIMIT 1")
+    fun getLatest(): Flow<Chatroom>
+
     @Update
     suspend fun update(chatroom: Chatroom)
 

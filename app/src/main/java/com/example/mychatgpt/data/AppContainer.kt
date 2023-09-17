@@ -15,6 +15,9 @@ interface AppContainer {
  */
 class AppDataContainer(private val context: Context) : AppContainer {
     override val chatRepository: ChatRepository by lazy {
-        OfflineChatRepository(AppDatabase.getDatabase(context).chatroomDao())
+        OfflineChatRepository(
+            AppDatabase.getDatabase(context).chatroomDao(),
+            AppDatabase.getDatabase(context).messageDao()
+        )
     }
 }
