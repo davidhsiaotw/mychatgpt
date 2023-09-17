@@ -46,7 +46,9 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(email: String = "", onClickNavigate: (String) -> Unit = {}) {
-    var account by rememberSaveable(stateSaver = AccountSaver) { mutableStateOf(Account(email = email)) }
+    var account by rememberSaveable(stateSaver = AccountSaver) {
+        mutableStateOf(Account(name = FirebaseUtil.getUserInfo().name, email = email))
+    }
     var errorMessage by rememberSaveable { mutableStateOf("") }
     val dataStore = UserDataStore(LocalContext.current)
     val coroutineScope = rememberCoroutineScope()
