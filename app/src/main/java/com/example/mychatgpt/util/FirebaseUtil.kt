@@ -2,7 +2,7 @@ package com.example.mychatgpt.util
 
 import com.example.mychatgpt.data.model.Account
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.userProfileChangeRequest
+import com.google.firebase.auth.userProfileChangeRequest
 
 object FirebaseUtil {
     private val firebaseAuth = FirebaseAuth.getInstance()
@@ -21,29 +21,18 @@ object FirebaseUtil {
         onSuccess: () -> Unit = {},
         onFailure: (String) -> Unit
     ) {
-        firebaseAuth.fetchSignInMethodsForEmail(email)
-            .addOnSuccessListener { result ->
-                // check if email already exists
-                if (result.signInMethods != null && result.signInMethods?.size == 0) {
-                    // create account
-                    firebaseAuth.createUserWithEmailAndPassword(email, password)
-                        .addOnSuccessListener {
-                            // set user
-                            updateName(name, onSuccess, onFailure)
-                            // WARN: onSuccess is not used but passed to updateName because it contains navigation on create screen
-                        }.addOnFailureListener {
-                            onFailure(it.message ?: "something wrong when creating account")
-                            error(
-                                "createUserWithNameAndEmailAndPassword",
-                                it.message ?: "something wrong when creating account"
-                            )
-                        }
-
-                }
-
+        // create account
+        firebaseAuth.createUserWithEmailAndPassword(email, password)
+            .addOnSuccessListener {
+                // set user
+                updateName(name, onSuccess, onFailure)
+                // WARN: onSuccess is not used but passed to updateName because it contains navigation on create screen
             }.addOnFailureListener {
-                onFailure(it.message ?: ("something wrong when setting name"))
-                error("checkEmailDuplicate", it.message ?: ("something wrong when setting name"))
+                onFailure(it.message ?: "something wrong when creating account")
+                error(
+                    "createUserWithNameAndEmailAndPassword",
+                    it.message ?: "something wrong when creating account"
+                )
             }
     }
 
@@ -57,16 +46,13 @@ object FirebaseUtil {
         }
     }
 
-    fun updateName(name: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
-        firebaseAuth.currentUser?.updateProfile(
-            userProfileChangeRequest {
-                displayName = name
-            })?.addOnSuccessListener {
-            onSuccess()
-        }?.addOnFailureListener {
-            onFailure(it.message ?: "something wrong when setting name")
-            error("updateName", it.message ?: "something wrong when setting name")
-        }
+    private fun updateName(name: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
+        firebaseAuth.currentUser?.updateProfile(userProfileChangeRequest { displayName = name })
+            ?.addOnSuccessListener { onSuccess() }
+            ?.addOnFailureListener {
+                onFailure(it.message ?: "something wrong when setting name")
+                error("updateName", it.message ?: "something wrong when setting name")
+            }
     }
 
     fun signIn(
