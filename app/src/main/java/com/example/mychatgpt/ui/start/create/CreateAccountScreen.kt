@@ -31,6 +31,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mychatgpt.Login
 import com.example.mychatgpt.data.model.Account
 import com.example.mychatgpt.ui.start.AuthUiState
+import com.example.mychatgpt.ui.start.LoadingScreen
 import com.example.mychatgpt.ui.theme.MyChatGPTTheme
 import com.example.mychatgpt.util.debug
 import com.example.mychatgpt.util.isEmailValid
@@ -49,7 +50,7 @@ fun CreateAccountScreen(
     val uiState by authViewModel.uiState.collectAsState()
 
     when (uiState) {
-        AuthUiState.Loading -> { } // TODO: loading screen
+        AuthUiState.Loading -> LoadingScreen("sending verification email...")
         AuthUiState.Success -> onClickNavigate("${Login.route}?email=${account.email}")
         else -> {
             if (uiState is AuthUiState.Failure) {

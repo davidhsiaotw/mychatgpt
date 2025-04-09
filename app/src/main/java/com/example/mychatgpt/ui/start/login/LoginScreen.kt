@@ -35,6 +35,7 @@ import com.example.mychatgpt.ChatList
 import com.example.mychatgpt.Forget
 import com.example.mychatgpt.data.model.Account
 import com.example.mychatgpt.ui.start.AuthUiState
+import com.example.mychatgpt.ui.start.LoadingScreen
 import com.example.mychatgpt.ui.start.create.AccountSaver
 import com.example.mychatgpt.ui.theme.MyChatGPTTheme
 import com.example.mychatgpt.util.FirebaseUtil
@@ -57,7 +58,7 @@ fun LoginScreen(
     val uiState by authViewModel.uiState.collectAsState()
 
     when (uiState) {
-        AuthUiState.Loading -> { } // TODO: loading screen
+        AuthUiState.Loading -> LoadingScreen("logging in...")
         AuthUiState.Success -> onClickNavigate(ChatList.route)
         else -> {
             if (uiState is AuthUiState.Failure) {
