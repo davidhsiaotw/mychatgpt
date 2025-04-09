@@ -11,6 +11,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.mapSaver
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mychatgpt.Login
 import com.example.mychatgpt.data.model.Account
+import com.example.mychatgpt.ui.start.AuthUiState
 import com.example.mychatgpt.ui.theme.MyChatGPTTheme
 import com.example.mychatgpt.util.debug
 import com.example.mychatgpt.util.isEmailValid
@@ -44,71 +46,82 @@ fun CreateAccountScreen(
 ) {
     var account by rememberSaveable(stateSaver = AccountSaver) { mutableStateOf(Account()) }
     var errorMessage by rememberSaveable { mutableStateOf("") }
+    val uiState by authViewModel.uiState.collectAsState()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .semantics { contentDescription = "Login Screen" }, contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = "Create New Account", fontSize = 24.sp)
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // issue: text is not updated/user cannot type in TextField
-            // solution: https://stackoverflow.com/a/74137042
-            TextField(value = account.name, onValueChange = {
-                account = account.copy(name = it)
-            }, label = { Text(text = "Name") }, singleLine = true)
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            TextField(
-                value = account.email, onValueChange = {
-                    account = account.copy(email = it)
-                }, label = { Text(text = "Email") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            TextField(value = account.password, onValueChange = {
-                account = account.copy(password = it)
-            }, label = { Text(text = "New Password") },
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Button(onClick = {
-
-                if (account.name.length !in 1..25) {
-                    errorMessage = "name should be 1~25 characters"
-                } else if (account.email.isBlank()) {
-                    errorMessage = "email should not be blank"
-                } else if (!isEmailValid(account.email)) {
-                    errorMessage = "email is not valid"
-                } else if (!isPasswordValid(account.password)) {
-                    errorMessage = "password should be 6~16 characters"
-                } else {
-                    account = account.copy(name = account.name.trim(), email = account.email.trim())
-                    authViewModel.createAccount(account)
-                }
-            }) {
-                Text(text = "CREATE")
+    when (uiState) {
+        AuthUiState.Loading -> { } // TODO: loading screen
+        AuthUiState.Success -> onClickNavigate("${Login.route}?email=${account.email}")
+        else -> {
+            if (uiState is AuthUiState.Failure) {
+                errorMessage = (uiState as AuthUiState.Failure).message
             }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .semantics { contentDescription = "Login Screen" },
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = "Create New Account", fontSize = 24.sp)
 
-            if (errorMessage.isNotBlank()) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(text = errorMessage, fontSize = 12.sp, color = Color.Red)
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // issue: text is not updated/user cannot type in TextField
+                    // solution: https://stackoverflow.com/a/74137042
+                    TextField(value = account.name, onValueChange = {
+                        account = account.copy(name = it)
+                    }, label = { Text(text = "Name") }, singleLine = true)
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    TextField(
+                        value = account.email, onValueChange = {
+                            account = account.copy(email = it)
+                        }, label = { Text(text = "Email") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        singleLine = true
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    TextField(value = account.password, onValueChange = {
+                        account = account.copy(password = it)
+                    }, label = { Text(text = "New Password") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        singleLine = true
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Button(onClick = {
+                        if (account.name.length !in 1..25) {
+                            errorMessage = "name should be 1~25 characters"
+                        } else if (account.email.isBlank()) {
+                            errorMessage = "email should not be blank"
+                        } else if (!isEmailValid(account.email)) {
+                            errorMessage = "email is not valid"
+                        } else if (!isPasswordValid(account.password)) {
+                            errorMessage = "password should be 6~16 characters"
+                        } else {
+                            account = account.copy(
+                                name = account.name.trim(), email = account.email.trim()
+                            )
+                            authViewModel.createAccount(account)
+                        }
+                    }) {
+                        Text(text = "CREATE")
+                    }
+
+                    if (errorMessage.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(text = errorMessage, fontSize = 12.sp, color = Color.Red)
+                    }
+                }
             }
         }
     }
 }
-
 
 /**
  * custom saver for Account
@@ -116,14 +129,11 @@ fun CreateAccountScreen(
 val AccountSaver = run {
     mapSaver(save = {
         mapOf(
-            "name" to it.name,
-            "email" to it.email,
-            "password" to it.password
+            "name" to it.name, "email" to it.email, "password" to it.password
         )
-    },
-        restore = {
-            Account(it["name"] as String, it["email"] as String, it["password"] as String)
-        })
+    }, restore = {
+        Account(it["name"] as String, it["email"] as String, it["password"] as String)
+    })
 }
 
 @Preview(showBackground = true)

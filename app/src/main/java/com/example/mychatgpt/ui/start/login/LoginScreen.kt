@@ -12,6 +12,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -33,6 +34,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mychatgpt.ChatList
 import com.example.mychatgpt.Forget
 import com.example.mychatgpt.data.model.Account
+import com.example.mychatgpt.ui.start.AuthUiState
 import com.example.mychatgpt.ui.start.create.AccountSaver
 import com.example.mychatgpt.ui.theme.MyChatGPTTheme
 import com.example.mychatgpt.util.FirebaseUtil
@@ -52,66 +54,75 @@ fun LoginScreen(
         mutableStateOf(Account(name = FirebaseUtil.getUserInfo().name, email = email))
     }
     var errorMessage by rememberSaveable { mutableStateOf("") }
+    val uiState by authViewModel.uiState.collectAsState()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .semantics { contentDescription = "Login Screen" }, contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = "Login", fontSize = 24.sp)
+    when (uiState) {
+        AuthUiState.Loading -> { } // TODO: loading screen
+        AuthUiState.Success -> onClickNavigate(ChatList.route)
+        else -> {
+            if (uiState is AuthUiState.Failure) {
+                errorMessage = (uiState as AuthUiState.Failure).message
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .semantics { contentDescription = "Login Screen" },
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = "Login", fontSize = 24.sp)
 
-            Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-            TextField(value = account.email, onValueChange = {
-                account = account.copy(email = it)
-            }, label = { Text(text = "Email") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                singleLine = true
-            )
+                    TextField(value = account.email, onValueChange = {
+                        account = account.copy(email = it)
+                    }, label = { Text(text = "Email") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        singleLine = true
+                    )
 
-            Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-            TextField(value = account.password, onValueChange = {
-                account = account.copy(password = it)
-            }, label = { Text(text = "Password") },
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                singleLine = true
-            )
+                    TextField(value = account.password, onValueChange = {
+                        account = account.copy(password = it)
+                    }, label = { Text(text = "Password") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        singleLine = true
+                    )
 
-            Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-            ClickableText(
-                text = AnnotatedString("forget password?"),
-                modifier = Modifier.align(Alignment.Start),
-                style = TextStyle(textDecoration = TextDecoration.Underline), onClick = {
-                    // TODO: navigate to forget screen
+                    ClickableText(
+                        text = AnnotatedString("forget password?"),
+                        modifier = Modifier.align(Alignment.Start),
+                        style = TextStyle(textDecoration = TextDecoration.Underline), onClick = {
+                            // TODO: navigate to forget screen
 //                    onClickNavigate(Forget.route)
-                })
+                        })
 
-            Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-            Button(onClick = {
-                if (account.email.isBlank()) {
-                    errorMessage = "email should not be blank"
-                } else if (!isEmailValid(account.email)) {
-                    errorMessage = "email is not valid"
-                } else if (!isPasswordValid(account.password)) {
-                    errorMessage = "password should be 6~16 characters"
-                } else {
-                    authViewModel.login(account)
+                    Button(onClick = {
+                        if (account.email.isBlank()) {
+                            errorMessage = "email should not be blank"
+                        } else if (!isEmailValid(account.email)) {
+                            errorMessage = "email is not valid"
+                        } else if (!isPasswordValid(account.password)) {
+                            errorMessage = "password should be 6~16 characters"
+                        } else {
+                            authViewModel.login(account)
+                        }
+                    }) {
+                        Text(text = "LOGIN")
+                    }
+
+                    if (errorMessage.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(text = errorMessage, color = Color.Red)
+                    }
                 }
-
-            }) {
-                Text(text = "LOGIN")
             }
-
-            if (errorMessage.isNotBlank()) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(text = errorMessage, color = Color.Red)
-            }
-
         }
     }
 }
