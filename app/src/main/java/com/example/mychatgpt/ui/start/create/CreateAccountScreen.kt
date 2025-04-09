@@ -26,18 +26,22 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mychatgpt.Login
-import com.example.mychatgpt.data.database.MyChatGptFirebase
 import com.example.mychatgpt.data.model.Account
 import com.example.mychatgpt.ui.theme.MyChatGPTTheme
-import com.example.mychatgpt.util.FirebaseUtil
 import com.example.mychatgpt.util.debug
 import com.example.mychatgpt.util.isEmailValid
 import com.example.mychatgpt.util.isPasswordValid
+import com.example.mychatgpt.viewmodel.AppViewModelProvider
+import com.example.mychatgpt.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateAccountScreen(onClickNavigate: (String) -> Unit = {}) {
+fun CreateAccountScreen(
+    authViewModel: AuthViewModel = viewModel(factory = AppViewModelProvider.Factory),
+    onClickNavigate: (String) -> Unit
+) {
     var account by rememberSaveable(stateSaver = AccountSaver) { mutableStateOf(Account()) }
     var errorMessage by rememberSaveable { mutableStateOf("") }
 
@@ -91,24 +95,7 @@ fun CreateAccountScreen(onClickNavigate: (String) -> Unit = {}) {
                     errorMessage = "password should be 6~16 characters"
                 } else {
                     account = account.copy(name = account.name.trim(), email = account.email.trim())
-                    MyChatGptFirebase.addNewAccount(account.email, onSuccess = {
-                        FirebaseUtil.createUserWithNameAndEmailAndPassword(
-                            account.name, account.email, account.password, onSuccess = {
-                                FirebaseUtil.verifyEmail()
-                                errorMessage = ""
-                                // TODO: navigation has delay
-//                                debug("CreateAccountScreen", "${Login.route}/${account.email}")
-                                onClickNavigate("${Login.route}?email=${account.email}")
-                                account = Account() // reset account
-                            }, onFailure = {
-                                errorMessage = it
-                            }
-                        )
-                    }, onFailure = {
-                        errorMessage = it
-                    })
-
-
+                    authViewModel.createAccount(account)
                 }
             }) {
                 Text(text = "CREATE")
@@ -143,6 +130,6 @@ val AccountSaver = run {
 @Composable
 private fun CreateAccountScreenPreview() {
     MyChatGPTTheme {
-        CreateAccountScreen()
+        CreateAccountScreen {}
     }
 }
