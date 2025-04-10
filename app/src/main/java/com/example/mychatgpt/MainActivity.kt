@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -83,7 +82,7 @@ fun MyNavHost(
         composable(route = Login.routeWithArgs, arguments = Login.arguments) { backStackEntry ->
             val email = backStackEntry.arguments?.getString(Login.EMAIL_ADDRESS) ?: ""
             LoginScreen(email = email, onClickNavigate = {
-                navController.navigateSingleTopTo(ChatList.route, route = it)
+                navController.navigateSingleTopTo(Start.route, route = it)
             })
         }
 
@@ -101,19 +100,14 @@ fun NavHostController.navigateSingleTopTo(popUpToRoute: String = "", route: Stri
     this.navigate(route) {
         if (popUpToRoute.isNotBlank())
             popUpTo(popUpToRoute) {
+                inclusive = true
                 saveState = true
             }
 
-        launchSingleTop =
-            true  // at most one copy of a given destination on the top of the back stack
-        restoreState =
-            true // determines whether this navigation action should restore any state previously saved by PopUpToBuilder.saveState or the popUpToSaveState attribute
-    }
+        // at most one copy of a given destination on the top of the back stack
+        launchSingleTop = true
 
-@Preview(showBackground = true)
-@Composable
-private fun AppPreview() {
-    MyChatGPTTheme {
-        MyChatGptApp()
+        // determines whether this navigation action should restore any state previously saved by
+        // PopUpToBuilder.saveState or the popUpToSaveState attribute
+        restoreState = true
     }
-}
